@@ -12,11 +12,12 @@ class Trie:
         node.is_end = True
         node.movie = movie 
 
-    def _dfs(self,node,results):
+    def _dfs(self, node, results):
         if node.is_end:
             results.append(node.movie)
+
         for char, next_node in node.children.items():
-            self._dfs(next_node,results)
+            self._dfs(next_node, results)
     def _traverse(self,string:str):
         node = self.root
         for char in string.lower():
