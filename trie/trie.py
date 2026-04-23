@@ -36,3 +36,16 @@ class Trie:
         results = []
         self._dfs(node,results)
         return results
+    
+    def starts_with(self, prefix: str):
+        return self._traverse(prefix)
+
+    def autocomplete(self, prefix: str):
+        node = self._traverse(prefix)
+        
+        if not node:
+            return []
+        
+        results = []
+        self._dfs(node, results)
+        return results
