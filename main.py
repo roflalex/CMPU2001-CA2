@@ -61,6 +61,21 @@ def main():
 
     for movie in results[:5]:
         print(f"{movie['title']} → {movie['genres']}")
+        
+    print("-"*50,"\nTrie Autocomplete\n"+"-"*50)
+
+    prefixes = ["Toy", "Ju", "Star"]
+
+    for prefix in prefixes:
+        results, duration = time_search(lambda: trie.autocomplete(prefix))
+
+        print(f"\nPrefix '{prefix}' ({duration:.6f} sec):")
+
+        if results:
+            for movie in results[:5]:  # limit output
+                print(f"  {movie['title']} → {movie['genres']}")
+        else:
+            print("  No matches found")
     #Build hash table
     ht = HashTable(size=131071)
 
