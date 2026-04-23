@@ -6,8 +6,8 @@ class Trie:
 
     def insert(self,title:str, movie: dict):
         node = self.root
-        
-        for char in title.lower:
+        title = movie["title"] 
+        for char in title.lower():
             node = node.children.setdefault(char,TrieNode())
         node.is_end = True
         node.movie = movie 
@@ -15,13 +15,14 @@ class Trie:
     def _dfs(self,node,results):
         if node.is_end:
             results.append(node.movie)
-        for char, next_node in node.children.item():
+        for char, next_node in node.children.items():
             self._dfs(next_node,results)
     def _traverse(self,string:str):
         node = self.root
         for char in string.lower():
             if char not in node.children:
                 return None
+            node = node.children[char]
         return node
     def search(self,title:str) -> bool:
         node = self._traverse(title)

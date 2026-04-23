@@ -40,10 +40,16 @@ def main():
         trie.insert(movie["title"],movie)
 
     print(f"Inserted into Trie: {len(movies)} movies\n")
+    search_titles = [
+        "Toy Story",
+        "Jumanji",
+        "Telly Tubbies vs Power Rangers"
+    ]
+
     print("-"*50,"\nTrie search\n"+"-"*50)
+    
     for title in search_titles:
         movie, duration = time_search(lambda: trie.search(title))
-
         if movie:
             print(f"{title}: Found ({duration:.6f} sec) → Genres: {movie['genres']}")
         else:
@@ -55,12 +61,6 @@ def main():
 
     for movie in results[:5]:
         print(f"{movie['title']} → {movie['genres']}")
-    search_titles = [
-        "Toy Story",
-        "Jumanji",
-        "Telly Tubbies vs Power Rangers"
-    ]
-
     #Build hash table
     ht = HashTable(size=131071)
 
