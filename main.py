@@ -1,5 +1,6 @@
 from dataloader.dataloader import MovieDataLoader
 from hash.hash_table import HashTable
+from trie.trie import Trie
 import time
 
 
@@ -32,13 +33,35 @@ def main():
     loader = MovieDataLoader("data/movies.csv")
     movies = loader.load_movies()
 
+    
+    #Build Trie
+    trie = Trie()
+    for movie in movies:
+        trie.insert(movie["title"],movie)
+
+    print(f"Inserted into Trie: {len(movies)} movies\n")
+    print("-"*50,"\nTrie search\n"+"-"*50)
+    for title in search_titles:
+        movie, duration = time_search(lambda: trie.search(title))
+
+        if movie:
+            print(f"{title}: Found ({duration:.6f} sec) → Genres: {movie['genres']}")
+        else:
+            print(f"{title}: Not Found ({duration:.6f} sec)")
+
+    # Prefix search demo
+    print("\nPrefix search: 'Toy'\n")
+    results = trie.prefix_search("Toy")
+
+    for movie in results[:5]:
+        print(f"{movie['title']} → {movie['genres']}")
     search_titles = [
         "Toy Story",
-        "Simulant",
+        "Jumanji",
         "Telly Tubbies vs Power Rangers"
     ]
 
-# Build hash table
+    #Build hash table
     ht = HashTable(size=131071)
 
     for movie in movies:

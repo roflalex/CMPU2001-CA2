@@ -26,6 +26,19 @@ class MovieDataLoader:
                 })
 
             return self.movies
+    def load_into_trie(self, trie, progress=False):
+        count = 0
+    
+        for count, movie in enumerate(self.load_movies(), start=1):
+            trie.insert(movie["title"], movie)
+    
+            if progress and count % 10000 == 0:
+                print(f"Loaded {count} movies...")
+    
+        if progress:
+            print(f"Finished loading {count} movies.")
+        
+        return count
     def _clean_title(self,title):
         """Remove year from movie title"""
         data = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
