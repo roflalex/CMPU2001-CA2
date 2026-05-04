@@ -3,24 +3,6 @@ from hash.hash_table import HashTable
 from trie.trie import Trie
 import time
 
-
-'''
-TODO:
-Implement Hashmap for exact movie lookup
-Implement Prefix trie for prefix based search and autocomplete functionality
-
-Evaluate their performance on searching for movies by exact title or ID
-Evaluate their performance on searching for prefix-based searches on movie titles
-Evaluate the performance of inserting movie records into each data structure
-Evaluate the performance of retrieving matching multiple results for patrial queries
-
-Analyse and compare performance of each data strucutre against their theoretical time complexities
-
-Design and conduct controlled experiments to measure and compare runtime performance across different query types and dataset operations
-
-
-
-'''
 def time_search(fn):
     start = time.perf_counter()
     result = fn()
@@ -33,64 +15,89 @@ def main():
     loader = MovieDataLoader("data/movies.csv")
     movies = loader.load_movies()
 
-    
-    #Build Trie
+    '''
+    Build Trie
+    '''
     trie = Trie()
+    start = time.perf_counter()
     for movie in movies:
         trie.insert(movie["title"],movie)
+    trie_build_time = time.perf_counter() - start
 
-    print(f"Inserted into Trie: {len(movies)} movies\n")
+    print(f"Trie insert time: {trie_build_time:.6f} sec")
+
+    ''' 
+    Build hash
+    '''
+
+    ht = HashTable(size=131071)
+    start = time.perf_counter()
+    for movie in movies:
+        ht.insert(movie)
+    hash_build_time = time.perf_counter() - start
+
+    print(f"Hash insert time: {hash_build_time:.6f} sec")
+    print(f"Collisions: {ht.collisions}\n")
+
+    '''
+    Exact Search
+    '''
+
     search_titles = [
         "Toy Story",
         "Jumanji",
         "Telly Tubbies vs Power Rangers"
     ]
 
-    print("-"*50,"\nTrie search\n"+"-"*50)
-    
+    print("-"*50,"\nExact Search Comparison\n"+"-"*50)
+
     for title in search_titles:
-        movie, duration = time_search(lambda: trie.search(title))
+        t_movie, t_time = time_search(lambda: trie.search(title))
+        h_movie, h_time = time_search(lambda: ht.search(title))
+
+        print(f"\n{title}")
+        print(f"Trie: {'Found' if t_movie else 'Not Found'} ({t_time:.6f})")
+        print(f"Hash: {'Found' if h_movie else 'Not Found'} ({h_time:.6f})")
+
+    '''
+    ID Search
+    '''
+    print("\n"+"-"*50,"\nID Search (Hash only)\n"+"-"*50)
+
+    test_ids = [1, 50, 999999]
+
+    for movie_id in test_ids:
+        movie, duration = time_search(lambda: ht.search(movie_id))
+
         if movie:
-            print(f"{title}: Found ({duration:.6f} sec) → Genres: {movie['genres']}")
+            print(f"{movie_id}: Found ({duration:.6f}) → {movie['title']}")
         else:
-            print(f"{title}: Not Found ({duration:.6f} sec)")
+            print(f"{movie_id}: Not Found ({duration:.6f})")
 
-    # Prefix search demo
-    print("\nPrefix search: 'Toy'\n")
-    results = trie.prefix_search("Toy")
-
-    for movie in results[:5]:
-        print(f"{movie['title']} → {movie['genres']}")
-        
-    print("-"*50,"\nTrie Autocomplete\n"+"-"*50)
+    '''
+    Prefix Search
+    '''
+    print("\n"+"-"*50,"\nPrefix Search (Trie)\n"+"-"*50)
 
     prefixes = ["Toy", "Ju", "Star"]
 
     for prefix in prefixes:
-        results, duration = time_search(lambda: trie.autocomplete(prefix))
+        results, duration = time_search(lambda: trie.prefix_search(prefix))
 
-        print(f"\nPrefix '{prefix}' ({duration:.6f} sec):")
+        print(f"\nPrefix '{prefix}' ({duration:.6f})")
 
         if results:
-            for movie in results[:5]:  # limit output
-                print(f"  {movie['title']} → {movie['genres']}")
+            print(f"Matches: {len(results)}")
+            for movie in results[:5]:
+                print(f"  {movie['title']}")
         else:
-            print("  No matches found")
-    #Build hash table
-    ht = HashTable(size=131071)
+            print("No matches")
+    print("="*50)
+    print("\nHash Table:")
+    print("  Avg O(1) search, collisions affect performance")
+    print("Trie:")
+    print("  O(k) search where k = length of title/prefix")
+    print("  Better for prefix queries")
 
-    for movie in movies:
-        ht.insert(movie)
-    print(f"\nInserted: {len(movies)} movies")
-    print(f"Collisions:{ht.collisions}\n")
-
-    # Hash table search timing 
-    print(f"-"*50,"\nHash table search\n"+"-"*50)
-    for title in search_titles:
-        movie,duration = time_search(lambda:ht.search(title))
-        if movie:
-            print(f"{title}: Found ({duration:.6f} sec) →Genres: {movie['genres']}")
-        else:
-            print(f"{title}: Not Found ({duration:.6f} sec)")    
 if __name__ == "__main__": 
     main()
