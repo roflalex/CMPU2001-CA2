@@ -8,17 +8,19 @@ class HashTable:
         return hash(key) % self.size
     
     def insert(self,movie):
-        key = movie["title"]
+        # store both title and id
+        for key in (movie["title"], movie["id"]):
+            index = self.hash(key)
+
+            if len(self.table[index]) > 0:
+                self.collisions +=1
+
+            self.table[index].append(movie)
+
+    def search(self,key):
         index = self.hash(key)
-
-        if len(self.table[index]) > 0:
-            self.collisions +=1
-
-        self.table[index].append(movie)
-    def search(self,title):
-        index = self.hash(title)
         
         for movie in self.table[index]:
-            if movie["title"] == title:
+            if movie["title"] == key or movie["id"] == key:
                 return movie
         return None
