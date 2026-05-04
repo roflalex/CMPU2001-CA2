@@ -18,6 +18,7 @@ def main():
     '''
     Build Trie
     '''
+    
     trie = Trie()
     start = time.perf_counter()
     for movie in movies:
@@ -62,7 +63,7 @@ def main():
     '''
     ID Search
     '''
-    print("\n"+"-"*50,"\nID Search (Hash only)\n"+"-"*50)
+    print("\n"+"-"*50,"\nID Search\n"+"-"*50)
 
     test_ids = [1, 50, 999999]
 
@@ -77,7 +78,7 @@ def main():
     '''
     Prefix Search
     '''
-    print("\n"+"-"*50,"\nPrefix Search (Trie)\n"+"-"*50)
+    print("\n"+"-"*50,"\nPrefix Search\n"+"-"*50)
 
     prefixes = ["Toy", "Ju", "Star"]
 
@@ -92,12 +93,15 @@ def main():
                 print(f"  {movie['title']}")
         else:
             print("No matches")
-    print("="*50)
-    print("\nHash Table:")
-    print("  Avg O(1) search, collisions affect performance")
-    print("Trie:")
-    print("  O(k) search where k = length of title/prefix")
-    print("  Better for prefix queries")
+    
+'''
+Conclusion:
+    Hash Table:
+    Avg O(1) search, collisions affect performance
 
+    Trie:
+    O(k) search where k = length of title/prefix
+    Better for prefix queries
+'''
 if __name__ == "__main__": 
     main()
