@@ -1,6 +1,7 @@
 from dataloader.dataloader import MovieDataLoader
 from hash.hash_table import HashTable
 from trie.trie import Trie
+from linear.linear_search import LinearSearch
 import time
 
 def time_search(fn):
@@ -9,99 +10,94 @@ def time_search(fn):
     end = time.perf_counter()
     return result,end - start
 
+def average(times):
+    return sum(times) / len(times)
+
+def experiment(movies, repeats=3):
+    #setup searches
+    search_titles = ["Toy Story", "Jumanji", "Telly Tubbies"]
+    prefix = "Xyz"
+
+    trie_exact_times = []
+    hash_exact_times = []
+    linear_exact_times = []
+
+    trie_prefix_times = []
+    linear_prefix_times = []
+
+    trie_build_times = []
+    hash_build_times = []
+    #perform searches and track time taken for each search.
+    for _ in range(repeats):
+        #build structures
+        trie = Trie()
+        ht = HashTable(size=131071)
+        linear = LinearSearch(movies)
+
+        # time trie insertion
+        start = time.perf_counter()
+        for movie in movies:
+            trie.insert(movie["title"], movie)
+        trie_build_times.append(time.perf_counter() - start)
+
+        # time Hash insertion
+        start = time.perf_counter()
+        for movie in movies:
+            ht.insert(movie)
+        hash_build_times.append(time.perf_counter() - start)
+
+        # exact search for each data structure 
+        for title in search_titles:
+            _, t = time_search(lambda: trie.search(title))
+            trie_exact_times.append(t)
+
+            _, t = time_search(lambda: ht.search(title))
+            hash_exact_times.append(t)
+
+            _, t = time_search(lambda: linear.search(title))
+            linear_exact_times.append(t)
+        # prefix search for tries and linear 
+        _, t = time_search(lambda: trie.prefix_search(prefix))
+        trie_prefix_times.append(t)
+
+        _, t = time_search(lambda: linear.prefix_search(prefix))
+        linear_prefix_times.append(t)
+    return {
+        "trie_build": average(trie_build_times),
+        "hash_build": average(hash_build_times),
+        "trie_exact": average(trie_exact_times),
+        "hash_exact": average(hash_exact_times),
+        "linear_exact": average(linear_exact_times),
+        "trie_prefix": average(trie_prefix_times),
+        "linear_prefix": average(linear_prefix_times)
+    }
 def main():
     print("Loading movies...\n")
 
     loader = MovieDataLoader("data/movies.csv")
-    movies = loader.load_movies()
+    all_movies = loader.load_movies()
 
-    '''
-    Build Trie
-    '''
-    
-    trie = Trie()
-    start = time.perf_counter()
-    for movie in movies:
-        trie.insert(movie["title"],movie)
-    trie_build_time = time.perf_counter() - start
+    dataset_sizes = [1000, 5000, 10000, 20000, 40000, 80000]
 
-    print(f"Trie insert time: {trie_build_time:.6f} sec")
+    print("-"*60,"\nScaling Experiment Results\n","-"*60)
 
-    ''' 
-    Build hash
-    '''
+    for size in dataset_sizes:
+        movies = all_movies[:size]
 
-    ht = HashTable(size=131071)
-    start = time.perf_counter()
-    for movie in movies:
-        ht.insert(movie)
-    hash_build_time = time.perf_counter() - start
+        start = time.perf_counter()
+        results = experiment(movies)
+        total_time = time.perf_counter() - start
 
-    print(f"Hash insert time: {hash_build_time:.6f} sec")
-    print(f"Collisions: {ht.collisions}\n")
+        print(f"\nDataset Size: {size}")
+        print(f"Trie Build Avg: {results['trie_build']:.6f}")
+        print(f"Hash Build Avg: {results['hash_build']:.6f}")
 
-    '''
-    Exact Search
-    '''
+        print(f"Trie Exact Avg:   {results['trie_exact']:.8f}")
+        print(f"Hash Exact Avg:   {results['hash_exact']:.8f}")
+        print(f"Linear Exact Avg: {results['linear_exact']:.8f}")
 
-    search_titles = [
-        "Toy Story",
-        "Jumanji",
-        "Telly Tubbies vs Power Rangers"
-    ]
+        print(f"Trie Prefix Avg:   {results['trie_prefix']:.8f}")
+        print(f"Linear Prefix Avg: {results['linear_prefix']:.8f}")
 
-    print("-"*50,"\nExact Search Comparison\n"+"-"*50)
-
-    for title in search_titles:
-        t_movie, t_time = time_search(lambda: trie.search(title))
-        h_movie, h_time = time_search(lambda: ht.search(title))
-
-        print(f"\n{title}")
-        print(f"Trie: {'Found' if t_movie else 'Not Found'} ({t_time:.6f})")
-        print(f"Hash: {'Found' if h_movie else 'Not Found'} ({h_time:.6f})")
-
-    '''
-    ID Search
-    '''
-    print("\n"+"-"*50,"\nID Search\n"+"-"*50)
-
-    test_ids = [1, 50, 999999]
-
-    for movie_id in test_ids:
-        movie, duration = time_search(lambda: ht.search(movie_id))
-
-        if movie:
-            print(f"{movie_id}: Found ({duration:.6f}) → {movie['title']}")
-        else:
-            print(f"{movie_id}: Not Found ({duration:.6f})")
-
-    '''
-    Prefix Search
-    '''
-    print("\n"+"-"*50,"\nPrefix Search\n"+"-"*50)
-
-    prefixes = ["Toy", "Ju", "Star"]
-
-    for prefix in prefixes:
-        results, duration = time_search(lambda: trie.prefix_search(prefix))
-
-        print(f"\nPrefix '{prefix}' ({duration:.6f})")
-
-        if results:
-            print(f"Matches: {len(results)}")
-            for movie in results[:5]:
-                print(f"  {movie['title']}")
-        else:
-            print("No matches")
-    
-'''
-Conclusion:
-    Hash Table:
-    Avg O(1) search, collisions affect performance
-
-    Trie:
-    O(k) search where k = length of title/prefix
-    Better for prefix queries
-'''
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()
