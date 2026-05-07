@@ -27,7 +27,8 @@ def experiment(movies, repeats=3):
 
     trie_build_times = []
     hash_build_times = []
-    #perform searches and track time taken for each search.
+
+    #perform searches and get average runtime per search.
     for _ in range(repeats):
         #build structures
         trie = Trie()
